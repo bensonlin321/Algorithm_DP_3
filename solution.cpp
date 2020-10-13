@@ -10,6 +10,7 @@
 #include <utility> // pair
 #include <tuple>
 #include <algorithm>
+#include <climits>
 
 // g++ -std=c++11 solution.cpp
 
@@ -27,51 +28,46 @@ public:
                 return 1;
             }
         }
+        // use to record how many coins for assembling the each ammount
+        int *dp = new int[amount + 1];
+        
+        // initialization
+        dp[0] = 0;  // if the amount is 0, we need 0 coin to assemble the amount
+        for (int i = 1; i <= amount; ++i)
+        {
+            dp[i] = -1;  // -1 means no coins could be assembled the amount
+        }
 
-        // remove 0 from coins
-        coins.erase(std::remove(coins.begin(), coins.end(), 0), coins.end());
-
-        //for (auto i = coins.begin(); i != coins.end(); ++i)
-        //    std::cout << *i << ' ';
-        //printf("start, rest_amount:%d\n", rest_amount);
-
-        int output = 0;
-        int best_choose_coin = 0;
-        int rest_amount = amount;
-        bool no_proper_coin = true;
-
-        while(true) {
-            best_choose_coin = 0;
-            no_proper_coin = true;
-            for (int i = 0 ; i < coins.size(); i++) {
-                if ( (rest_amount - coins[i]) >= 0 ) {
-                    if (rest_amount - coins[i] <= rest_amount - best_choose_coin) {
-                        best_choose_coin = coins[i];
-                        no_proper_coin = false;
-                        printf("[%d] best_choose_coin:%d\n", i, best_choose_coin);
+        //*** calculate the minimum number for assemble each amount ***
+        for (int i = 0; i <= amount; ++i) { // count from the minimum amount
+            int min = INT_MAX;
+            printf("=======================\n");
+            for (int coin : coins) { // go through all coins
+                // dp[i - coin] means the minimum size of the coins to assemble the previous amount
+                printf("coin: %d\n", coin);
+                if (i - coin >= 0 && dp[i - coin] != -1) {
+                    int tmp = dp[i - coin] + 1;  // add one more coin
+                    if (tmp < min) {
+                        min = tmp; // the minimum quantity for assembling the ammount
+                        printf("dp[%d - %d]: %d\n",i, coin, dp[i - coin]);
+                        printf("min: %d coin: %d amount: %d\n", min, coin, i);
                     }
                 }
             }
 
-            if (no_proper_coin) {
-                if(rest_amount > 0) {
-                    return -1;
-                }
-                return output;
-            } else {
-                rest_amount = rest_amount - best_choose_coin;
-                output++;
-                printf("rest_amount: %d, best_choose_coin: %d\n", rest_amount, best_choose_coin);
-            }
+            // if min != INT_MAX means that the current amount could be assembled
+            if (min != INT_MAX)
+                dp[i] = min;
+            printf("The minimum quantity to assemble %d: %d\n", i, dp[i]);
         }
-        return output;
+        return dp[amount];
     }
 };
 
 
 int main(int argc, char *argv[]) {
     Solution *s = new Solution();
-    std::vector<int> coins{ 0, 1, 2, 3, 5, 7, 12};
-    int amount = 11;
-    printf("output:%d\n", s -> coinChange(coins, 11));
+    std::vector<int> coins{ 1, 6, 7 };
+    int amount = 18;
+    printf("output:%d\n", s -> coinChange(coins, amount));
 }
